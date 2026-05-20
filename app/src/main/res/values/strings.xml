@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">SmartHealthMonitor</string>
+    <string name="title_activity_wear">Wear</string>
+    <string name="hello_world">Hello, %1$s!</string>
+</resources>
