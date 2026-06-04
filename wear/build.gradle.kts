@@ -1,7 +1,16 @@
+import java.util.Properties
+
+val localProps = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProps.load(localPropertiesFile.inputStream())
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -15,6 +24,8 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "NEON_API_KEY", "\"${localProps.getProperty("NEON_API_KEY", "")}\"")
+        buildConfigField("String", "NEON_HOST", "\"${localProps.getProperty("NEON_HOST", "")}\"")
     }
 
     buildTypes {
@@ -35,8 +46,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
+
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
@@ -72,4 +85,15 @@ implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     implementation("androidx.wear.watchface:watchface:1.2.1")
     implementation("androidx.wear.watchface:watchface-complications-rendering:1.2.1")
     implementation("androidx.wear.watchface:watchface-style:1.2.1")
+
+    // Eclipse Paho MQTT & Kotlinx Serialization
+    implementation(libs.paho.mqtt.client)
+    implementation(libs.paho.mqtt.service)
+    implementation(libs.kotlinx.serialization.json)
+
+    // Retrofit + OkHttp para llamadas a Neon HTTP API
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 }
