@@ -2,7 +2,8 @@ package com.example.smarthealthmonitor.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.smarthealthmonitor.data.db.LecturaFC
+import kotlinx.coroutines.launch
+import mx.utng.smarthealthmonitor.data.local.LecturaFC
 import com.example.smarthealthmonitor.data.models.SmartHealthRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,4 +34,10 @@ class DashboardViewModel : ViewModel() {
                 started = SharingStarted.WhileSubscribed(5_000),
                 initialValue = emptyList()
             )
+
+    fun sincronizarManual() {
+        viewModelScope.launch {
+            SmartHealthRepository.sincronizarManual()
+        }
+    }
 }

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -74,6 +75,14 @@ fun DashboardScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.sincronizarManual() }) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = "Sincronizar con Neon",
+                            tint = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+
                     // Botón de Cast (Chromecast) integrado vía AndroidView
                     AndroidView(
                         factory = { context ->
