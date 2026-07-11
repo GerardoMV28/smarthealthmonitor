@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material3.Button
@@ -18,7 +19,7 @@ fun WearDashboardScreen(
     onHistorialClick: () -> Unit = {}
 ) {
 
-    val viewModel = WearDashboardViewModel()
+    val viewModel: WearDashboardViewModel = viewModel()
 
     val fc by viewModel.fc.collectAsState()
 
