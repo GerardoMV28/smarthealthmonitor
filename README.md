@@ -95,6 +95,36 @@ Experiencia para pantallas de gran formato y salas de monitoreo mediante control
 
 ---
 
+## 🐘 Sincronización en la Nube con PostgreSQL Neon Serverless
+
+El proyecto integra una arquitectura híbrida **offline-first** utilizando **Room** como caché y fuente de verdad local, y **PostgreSQL en Neon Serverless** como fuente de verdad en la nube:
+
+1. **Patrón Offline-First (`SyncRepository`)**:
+   - Lecturas siempre disponibles desde Room vía `Flow<List<LecturaFC>>`.
+   - Inserción local garantizada en Room con flag `sincronizado = false`.
+   - Sincronización bidireccional inmediata hacia Neon al detectar conectividad.
+2. **WorkManager en Background (`NeonSyncWorker`)**:
+   - Sincronización periódica automática cada 30 minutos.
+   - Reintento con backoff exponencial y ejecución solo bajo red conectada.
+3. **Wear OS (`WearNeonRepository`)**:
+   - Publicación directa e inmediata de mediciones hacia Neon Serverless sin sobrecargar la memoria del reloj.
+4. **Android TV (`TvNeonRepository`)**:
+   - Consulta del historial global consolidado de los 3 dispositivos (móvil, reloj y TV).
+   - Métricas agregadas por dispositivo (`AVG(bpm)`) y detección de alertas de FC fuera de rango.
+
+### Configuración de Credenciales (`local.properties`)
+
+Las credenciales para conectar a la API HTTP de Neon deben agregarse en `local.properties`:
+
+```properties
+# Neon Serverless PostgreSQL
+NEON_API_KEY=tu_api_key_de_neon
+NEON_HOST=tu-host.neon.tech
+NEON_DB=neondb
+```
+
+---
+
 ## 🛠️ Stack Tecnológico y Dependencias
 
 - **Lenguaje**: Kotlin 2.0.0
