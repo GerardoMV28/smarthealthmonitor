@@ -1,4 +1,4 @@
-﻿package mx.utng.smarthealthmonitor.data.remote
+package mx.utng.smarthealthmonitor.data.remote
 
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
@@ -36,7 +36,7 @@ data class LecturaFcDto(
 interface NeonApiService {
     @POST("sql")
     suspend fun executeQuery(
-        @Header("Authorization") auth: String,
+        @Header("Authorization") auth: String? = null,
         @Header("Neon-Connection-String") connStr: String,
         @Body request: NeonRequest
     ): NeonResponse<LecturaFcDto>
