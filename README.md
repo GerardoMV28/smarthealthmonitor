@@ -46,17 +46,19 @@ Aplicación central para teléfonos Android que actúa como nodo concentrador de
 Aplicación diseñada para relojes inteligentes con interfaz optimizada para pantallas circulares y bajo consumo de energía.
 
 - **WearDashboardScreen**: Panel principal con `ScalingLazyColumn` y `TimeText` para visualización clara de la frecuencia cardíaca en tiempo real.
+- **WearRespiracionScreen**: Módulo de **Respiración Guiada y Biofeedback** (técnica Box Breathing 4-4-4) con animación circular fluida, temporizador por fases y cálculo de reducción de FC.
 - **WearHistorialScreen**: Navegación por historial optimizada para coronas giratorias físicas mediante **Rotary Input** (`Modifier.rotaryScrollable`).
 - **WearAlertaScreen**: Notificaciones y alertas en pantalla con botones circulares para confirmación rápida ante mediciones fuera de rango.
 - **SmartHealth WatchFace Nativo (`SmartHealthWatchFaceService`)**: Carátula digital personalizada que renderiza la hora, batería y frecuencia cardíaca directamente en la pantalla de bloqueo/inicio del reloj.
 - **Health Services API**: Lectura directa del sensor fotopletismógrafo (PPG) y envío continuo hacia el smartphone.
 
-| Pantalla Wear OS       | Descripción                                         |
-| ---------------------- | --------------------------------------------------- |
-| `WearDashboardScreen`  | FC en tiempo real con ScalingLazyColumn y TimeText  |
-| `WearHistorialScreen`  | Lista con soporte para Rotary Input (corona física) |
-| `WearAlertaScreen`     | Botones circulares de confirmación y alerta         |
-| `SmartHealthWatchFace` | WatchFace nativo con hora y FC sincronizada         |
+| Pantalla Wear OS         | Descripción                                                    |
+| ------------------------ | -------------------------------------------------------------- |
+| `WearDashboardScreen`    | FC en tiempo real con ScalingLazyColumn y TimeText             |
+| `WearRespiracionScreen`  | Respiración guiada 4-4-4, animación rítmica y biofeedback      |
+| `WearHistorialScreen`    | Lista con soporte para Rotary Input (corona física)            |
+| `WearAlertaScreen`       | Botones circulares de confirmación y alerta                    |
+| `SmartHealthWatchFace`   | WatchFace nativo con hora y FC sincronizada                    |
 
 ---
 

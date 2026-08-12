@@ -50,6 +50,20 @@ class WearDashboardViewModel(application: Application) : AndroidViewModel(applic
         _historial.value = listOf(nuevoBpm) + _historial.value.take(9)
     }
 
+    /** Registra una lectura al completar una sesión de relajación/respiración */
+    fun registrarSesionRelajacion(bpmFinal: Int) {
+        _fc.value = bpmFinal
+        _historial.value = listOf(bpmFinal) + _historial.value.take(9)
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                neonRepo.publicarLectura(bpmFinal, "Relajación")
+                mqttPublisher.publishFC(bpmFinal, "Relajación")
+            }.onFailure {
+                android.util.Log.w("WEAR", "Error al registrar sesión de relajación: ${it.message}")
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         mqttPublisher.disconnect()

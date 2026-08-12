@@ -12,6 +12,7 @@ object WearScreens {
     const val DASHBOARD = "wear_dashboard"
     const val ALERTA = "wear_alerta"
     const val HISTORIAL = "wear_historial"
+    const val RESPIRACION = "wear_respiracion"
 }
 
 @Composable
@@ -32,6 +33,9 @@ fun SmartHealthWearNavGraph() {
                 },
                 onHistorialClick = {
                     navController.navigate(WearScreens.HISTORIAL)
+                },
+                onRespiracionClick = {
+                    navController.navigate(WearScreens.RESPIRACION)
                 }
             )
         }
@@ -56,6 +60,21 @@ fun SmartHealthWearNavGraph() {
 
             WearHistorialScreen(
                 onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(WearScreens.RESPIRACION) {
+            val vm: WearDashboardViewModel = viewModel()
+            val fc by vm.fc.collectAsState()
+
+            WearRespiracionScreen(
+                fcActual = fc,
+                onRegistrarResultado = { bpmFinal ->
+                    vm.registrarSesionRelajacion(bpmFinal)
+                },
+                onVolver = {
                     navController.popBackStack()
                 }
             )

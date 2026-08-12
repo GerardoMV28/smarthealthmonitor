@@ -16,7 +16,8 @@ import com.example.smarthealthmonitor.wear.presentation.components.WearFCCard
 @Composable
 fun WearDashboardScreen(
     onAlertClick: () -> Unit = {},
-    onHistorialClick: () -> Unit = {}
+    onHistorialClick: () -> Unit = {},
+    onRespiracionClick: () -> Unit = {}
 ) {
 
     val viewModel: WearDashboardViewModel = viewModel()
@@ -35,6 +36,15 @@ fun WearDashboardScreen(
                 fc = fc,
                 modifier = Modifier.fillMaxWidth()
             )
+        }
+
+        item {
+            Button(
+                onClick = onRespiracionClick,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("🌬️ Respiración")
+            }
         }
 
         item {
