@@ -97,31 +97,73 @@ Experiencia para pantallas de gran formato y salas de monitoreo mediante control
 
 ---
 
-## 🐘 Sincronización en la Nube con PostgreSQL Neon Serverless
+---
 
-El proyecto integra una arquitectura híbrida **offline-first** utilizando **Room** como caché y fuente de verdad local, y **PostgreSQL en Neon Serverless** como fuente de verdad en la nube:
+## 🌟 Funcionalidades e Implementaciones del Proyecto
 
-1. **Patrón Offline-First (`SyncRepository`)**:
-   - Lecturas siempre disponibles desde Room vía `Flow<List<LecturaFC>>`.
-   - Inserción local garantizada en Room con flag `sincronizado = false`.
-   - Sincronización bidireccional inmediata hacia Neon al detectar conectividad.
-2. **WorkManager en Background (`NeonSyncWorker`)**:
-   - Sincronización periódica automática cada 30 minutos.
-   - Reintento con backoff exponencial y ejecución solo bajo red conectada.
-3. **Wear OS (`WearNeonRepository`)**:
-   - Publicación directa e inmediata de mediciones hacia Neon Serverless sin sobrecargar la memoria del reloj.
-4. **Android TV (`TvNeonRepository`)**:
-   - Consulta del historial global consolidado de los 3 dispositivos (móvil, reloj y TV).
-   - Métricas agregadas por dispositivo (`AVG(bpm)`) y detección de alertas de FC fuera de rango.
+El proyecto implementa una arquitectura integral y multiplataforma dividida en componentes especializados:
 
-### Configuración de Credenciales (`local.properties`)
+### 1. 🐘 Base de Datos en la Nube (PostgreSQL en Neon Serverless)
+- **Esquema Relacional Optimizado (`neon_schema.sql`)**:
+  - Tabla `lecturas_fc`: Registro principal de mediciones con `bpm`, `estado`, `dispositivo` (`wear` | `app` | `tv`), `hora`, `fecha`, flag de `sincronizado` y `created_at`.
+  - Tabla `alertas`: Almacén de eventos críticos (`FC_ALTA`, `FC_BAJA`, `FC_NORMAL`) y estado de atención (`atendida`).
+  - Tabla `dispositivos`: Control de dispositivos registrados (`ultimo_sync`, `activo`).
+  - Índices B-Tree: Consultas aceleradas por fecha (`idx_lecturas_fecha`), dispositivo (`idx_lecturas_dispositivo`) y estado de alertas (`idx_alertas_atendida`).
+- **Cliente HTTP REST Serverless (`NeonClient` & `NeonApiService`)**:
+  - Comunicación directa con el endpoint Serverless HTTP de Neon (`/sql`) vía Retrofit 2 y OkHttp 3.
+  - Autenticación segura mediante cabeceras `Neon-Connection-String` y `Authorization`.
 
-Las credenciales para conectar a la API HTTP de Neon deben agregarse en `local.properties`:
+### 2. 🔄 Arquitectura Híbrida & Patrón Offline-First (Room + Neon)
+- **Persistencia Local (Room DB v2)**: Fuente de verdad inmediata en el smartphone mediante `SmartHealthDatabase`, `LecturaFC` y `LecturaFcDao`.
+- **Coordinador de Datos (`SyncRepository`)**:
+  - **Escritura Local Inmediata**: Guarda primero en Room local (cero latencia y sin dependencia de conexión).
+  - **PUSH a la Nube**: Transmite la lectura a Neon en segundo plano y marca el registro como sincronizado (`sincronizado = true`).
+  - **PULL desde la Nube**: Descarga los registros más recientes de Neon e inserta en Room mediante `upsert` para evitar duplicados.
+  - **Recuperación de Pendientes (`enviarPendientes`)**: Sube automáticamente las lecturas acumuladas durante periodos sin conexión a internet.
+
+### 3. ⚙️ Sincronización en Segundo Plano con WorkManager (`NeonSyncWorker`)
+- Tarea en background periódica programada cada **30 minutos**.
+- Restricción de red (`NetworkType.CONNECTED`) para optimizar el consumo de batería y datos.
+- Política de reintentos automáticos con retroceso exponencial (`BackoffPolicy.EXPONENTIAL`, 5 minutos).
+- Inicialización en el arranque de la aplicación desde [SmartHealthApplication.kt](file:///C:/Users/gerar/OneDrive/Desktop/Ejercicio-2.1/app/src/main/java/com/example/smarthealthmonitor/SmartHealthApplication.kt).
+
+### 4. 📱 Módulo Móvil (`:app`) — Control y Visualización
+- **Dashboard en Tiempo Real**: Panel central con métricas en vivo (`StateFlow`), tarjetas informativas y botón de **Sincronización Manual (`↺ Sync`)** en la barra superior.
+- **Historial Clínico con Indicadores de Nube**: Cada elemento en `FilaHistorial` muestra el estado de sincronización visual:
+  - ☁️ `CloudDone` (Verde/Primario): Lectura sincronizada y respaldada en Neon PostgreSQL.
+  - ⏳ `CloudQueue` (Gris/Contorno): Lectura almacenada localmente en Room, pendiente de sincronización.
+- **Google Cast Framework**: Transmisión inalámbrica de métricas hacia pantallas externas compatibles con Chromecast.
+
+### 5. ⌚ Módulo Wear OS (`:wear`) — Reloj Inteligente
+- **Publicación Ligera (`WearNeonRepository`)**: Envío directo de lecturas PPG a Neon Serverless sin consumo excesivo de memoria en el smartwatch.
+- **🌬️ Ejercicio de Respiración Guiada con Biofeedback (`WearRespiracionScreen`)**:
+  - Técnica **Box Breathing 4-4-4**: Guía visual animada con expansión y contracción circular en 3 fases: *Inhalar (4s)*, *Sostener (4s)* y *Exhalar (4s)*.
+  - **Biofeedback en Vivo**: Monitorea el ritmo cardíaco en tiempo real y calcula la reducción de estrés (comparativa de FC Inicial vs FC Final).
+  - **Registro Automático**: Al completar los 4 ciclos (1 minuto), la sesión se registra en Neon PostgreSQL y MQTT bajo el estado `"Relajación"`.
+- **Carátula Nativa (`SmartHealthWatchFaceService`)**: Watch Face personalizado con renderizado de hora, batería y FC sincronizada.
+- **Navegación Wear OS**: Transiciones adaptadas a pantallas circulares con soporte para descarte por gesto (`SwipeDismissableNavHost`).
+
+### 6. 📺 Módulo Android TV (`:tv`) — Sala de Monitoreo
+- **Catálogo Multi-Fila (`TvCatalogScreen`)**:
+  - **Fila 1 (Estado Consolidado)**: Estadísticas en tiempo real agrupadas por dispositivo con promedios de ritmo cardíaco (`ROUND(AVG(bpm))`).
+  - **Fila 2 (Historial Global)**: Últimas 50 lecturas consolidadas de los 3 dispositivos combinados.
+  - **Fila 3 (Alertas Fuera de Rango)**: Detección analítica de taquicardia (>100 bpm) o bradicardia (<60 bpm) registradas en las últimas 24 horas.
+- **Reproductor Multimedia (`TvPlaybackScreen`)**: Integración con AndroidX Media3 y ExoPlayer para visualización de material educativo/salud.
+- **Navegación por Control Remoto (D-Pad)**: Componentes enfocables optimizados con `androidx.tv:tv-material`.
+
+### 7. 📡 Comunicación en Tiempo Real Multiplataforma (MQTT)
+- Integración de cliente Eclipse Paho MQTT para publicación y suscripción de eventos en tiempo real entre los 3 dispositivos.
+
+---
+
+### 🔑 Configuración de Credenciales (`local.properties`)
+
+Las credenciales para conectar a la API HTTP de Neon están configuradas en `local.properties`:
 
 ```properties
 # Neon Serverless PostgreSQL
 NEON_API_KEY=tu_api_key_de_neon
-NEON_HOST=tu-host.neon.tech
+NEON_HOST=ep-ancient-shape-b4z955q2-pooler.c-6.us-east-2.aws.neon.tech
 NEON_DB=neondb
 ```
 
