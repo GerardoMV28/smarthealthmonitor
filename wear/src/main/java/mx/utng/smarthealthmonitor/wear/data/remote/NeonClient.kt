@@ -1,7 +1,6 @@
 package mx.utng.smarthealthmonitor.wear.data.remote
 
 import com.example.smarthealthmonitor.wear.BuildConfig
-import kotlinx.serialization.Serializable
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -11,20 +10,17 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import java.util.concurrent.TimeUnit
 
-@Serializable
 data class NeonRequest(
     val query: String,
     val params: List<Any> = emptyList()
 )
 
-@Serializable
 data class NeonResponse<T>(
     val rows: List<T> = emptyList(),
     val rowCount: Int = 0,
     val command: String = ""
 )
 
-@Serializable
 data class LecturaFcDto(
     val id: Int = 0,
     val bpm: Int = 0,
