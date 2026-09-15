@@ -11,7 +11,7 @@ object NeonClient {
     private val BASE_HOST = if (BuildConfig.NEON_HOST.isNotBlank()) BuildConfig.NEON_HOST else "placeholder.neon.tech"
     private val BASE_URL = "https://$BASE_HOST/"
     
-    val AUTH_HEADER: String? = null
+    val AUTH_HEADER = "Bearer ${BuildConfig.NEON_API_KEY}"
     val CONN_STRING = "postgresql://neondb_owner:npg_yuIgAJ7hFC6P@${BuildConfig.NEON_HOST}/neondb?sslmode=require"
 
     val api: NeonApiService by lazy {
