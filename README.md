@@ -6,6 +6,54 @@
 [![Wear OS](https://img.shields.io/badge/Wear_OS-4.0+-black.svg?logo=wearos)](https://developer.android.com/wear)
 [![Android TV](https://img.shields.io/badge/Android_TV-Media3_ExoPlayer-orange.svg?logo=android)](https://developer.android.com/tv)
 
+<!--
+===================================================================================
+  DOCUMENTACIÓN TÉCNICA DE IMPLEMENTACIÓN Y ARQUITECTURA DEL PROYECTO SMARTHEALTH
+  Autor: Gerardo Manzano Villafaña | UTNG - Ingeniería en DGSW
+===================================================================================
+
+  1. BASE DE DATOS EN LA NUBE (PostgreSQL Neon Serverless)
+     - DDL Schema (neon_schema.sql): Tablas 'lecturas_fc', 'alertas', 'dispositivos'.
+     - Índices B-Tree: 'idx_lecturas_fecha', 'idx_lecturas_dispositivo', 'idx_alertas_atendida'.
+     - Cliente HTTP REST: NeonApiService (Retrofit 2) + NeonClient (OkHttp 3) mediante el endpoint '/sql' de Neon.
+
+  2. ARQUITECTURA HÍBRIDA & OFFLINE-FIRST
+     - Persistencia Local: Room DB v2 (LecturaFC, LecturaFcDao, SmartHealthDatabase).
+     - Coordinador SyncRepository:
+       * Guardado local inmediato en Room con sincronizado = false (cero latencia).
+       * PUSH a Neon al detectar conectividad (sincronizado = true).
+       * PULL desde Neon con operación upsert (descarga últimas 50 lecturas).
+       * enviarPendientes(): Recuperación y subida automática de lecturas acumuladas sin red.
+
+  3. SINCRONIZACIÓN EN SEGUNDO PLANO (WorkManager)
+     - NeonSyncWorker: Tarea en background cada 30 min con BackoffPolicy.EXPONENTIAL.
+     - Registro global en SmartHealthApplication al arrancar el dispositivo.
+
+  4. MÓDULO MÓVIL (:app)
+     - DashboardScreen: Métricas reactivas (StateFlow) + botón de Sincronización Manual ('↺ Sync').
+     - HistorialScreen: Listado con indicadores de nube en FilaHistorial (CloudDone = verde / CloudQueue = gris).
+     - Google Cast Framework: Transmisión a Chromecast.
+
+  5. MÓDULO WEAR OS (:wear)
+     - WearNeonRepository: Publicación ligera a Neon Serverless sin sobrecargar la memoria del reloj.
+     - WearRespiracionScreen: Módulo de Respiración Guiada (Técnica Box Breathing 4-4-4).
+       * Animación rítmica circular (Inhalar 4s -> Sostener 4s -> Exhalar 4s).
+       * Biofeedback en vivo: Muestra FC inicial vs final (cálculo de reducción de estrés).
+       * Auto-registro en Neon y MQTT con estado 'Relajación'.
+     - WatchFace Nativo (SmartHealthWatchFaceService) + Rotary Input.
+
+  6. MÓDULO ANDROID TV (:tv)
+     - TvCatalogScreen (Catálogo de 3 filas con Compose for TV):
+       * Fila 1: Métricas consolidadas por dispositivo (AVG bpm).
+       * Fila 2: Historial global completo (últimas 50 lecturas).
+       * Fila 3: Alertas de taquicardia (>100 bpm) y bradicardia (<60 bpm) de las últimas 24h.
+     - ExoPlayer (Media3) para reproducción multimedia y navegación por control remoto (D-Pad).
+
+  7. TELEMETRÍA EN TIEMPO REAL
+     - Cliente Eclipse Paho MQTT para envío y recepción reactiva de eventos entre Mobile, Wear OS y TV.
+===================================================================================
+-->
+
 **SmartHealth Monitor** es una solución integral y multiplataforma de salud digital desarrollada en **Android** que sincroniza y monitoriza la frecuencia cardíaca en tiempo real a través de tres entornos: dispositivos móviles (**Mobile**), relojes inteligentes (**Wear OS**) y pantallas de televisión (**Android TV**), integrando persistencia local, transmisión inalámbrica por Chromecast y reproducción multimedia.
 
 ---
